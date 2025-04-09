@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsCred - Fact Checker with 7000+ Source Cross-Reference</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .newsstand-bg {
+            background-image: url('https://images.unsplash.com/photo-1510936111840-04e8b6a49e9f?ixlib=rb-4.0.3');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+        }
+        .newspaper-card {
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        }
+        .newspaper-card:hover {
+            transform: rotateY(10deg) scale(1.03);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4);
+        }
+        .fact-check-result {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+        .credibility-meter {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
+        }
+        .search-bar {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .floating-tab {
+            animation: float 6s ease-in-out infinite;
+        }
+        .source-counter {
+            font-family: monospace;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .scanning-animation {
+            position: relative;
+            overflow: hidden;
+        }
+        .scanning-animation::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                rgba(59, 130, 246, 0.2) 50%, 
+                transparent 100%);
+            animation: scan 2s linear infinite;
+            opacity: 0;
+        }
+        @keyframes scan {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header -->
+    <header class="newsstand-bg bg-gray-900 bg-opacity-90 text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-newspaper text-3xl text-yellow-400"></i>
+                    <h1 class="text-3xl font-bold">NewsCred</h1>
+                </div>
+                <nav>
+                    <ul class="flex space-x-6">
+                        <li><a href="#" class="hover:text-yellow-400 transition">Home</a></li>
+                        <li><a href="#" class="hover:text-yellow-400 transition">How It Works</a></li>
+                        <li><a href="#" class="hover:text-yellow-400 transition">Sources</a></li>
+                        <li><a href="#" class="hover:text-yellow-400 transition">About</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-16 px-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Is That News Story True?</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Check the credibility of news against our catalog of <span class="font-bold">7,000+ global newspapers and magazines</span>.
+                </p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="max-w-3xl mx-auto mb-16">
+                <div class="search-bar relative bg-white rounded-full p-2 shadow-lg">
+                    <input 
+                        type="text" 
+                        placeholder="Paste news headline or claim to check..." 
+                        class="w-full py-4 px-6 rounded-full focus:outline-none text-gray-700"
+                        id="newsQuery"
+                    >
+                    <button 
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-full transition"
+                        onclick="checkCredibility()"
+                    >
+                        <i class="fas fa-search mr-2"></i> Check Credibility
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500 mt-2 text-center">
+                    Examples: "COVID vaccines cause autism", "Climate change is a hoax", "Moon landing was faked"
+                </p>
+            </div>
+
+            <!-- Featured Newspapers -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                <!-- Sample newspapers - in a real app these would be dynamic -->
+                <div class="newspaper-card bg-white rounded-lg overflow-hidden">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/The_New_York_Times_logo.png/800px-The_New_York_Times_logo.png" alt="NYT" class="w-full h-32 object-contain p-4">
+                    <div class="p-4 bg-gray-50">
+                        <h3 class="font-semibold">The New York Times</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-gray-500">USA</span>
+                            <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">High Credibility</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="newspaper-card bg-white rounded-lg overflow-hidden">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/The_Guardian_2018.svg/1200px-The_Guardian_2018.svg.png" alt="Guardian" class="w-full h-32 object-contain p-4">
+                    <div class="p-4 bg-gray-50">
+                        <h3 class="font-semibold">The Guardian</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-gray-500">UK</span>
+                            <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">High Credibility</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="newspaper-card bg-white rounded-lg overflow-hidden">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Le_Monde.svg/1200px-Le_Monde.svg.png" alt="Le Monde" class="w-full h-32 object-contain p-4">
+                    <div class="p-4 bg-gray-50">
+                        <h3 class="font-semibold">Le Monde</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-gray-500">France</span>
+                            <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">High Credibility</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="newspaper-card bg-white rounded-lg overflow-hidden">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/South_China_Morning_Post_Logo.svg/1200px-South_China_Morning_Post_Logo.svg.png" alt="SCMP" class="w-full h-32 object-contain p-4">
+                    <div class="p-4 bg-gray-50">
+                        <h3 class="font-semibold">SCMP</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-gray-500">Hong Kong</span>
+                            <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Medium Credibility</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="newspaper-card bg-white rounded-lg overflow-hidden">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/El_Pais_logo_2007.png/800px-El_Pais_logo_2007.png" alt="El País" class="w-full h-32 object-contain p-4">
+                    <div class="p-4 bg-gray-50">
+                        <h3 class="font-semibold">El País</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-gray-500">Spain</span>
+                            <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">High Credibility</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="newspaper-card bg-white rounded-lg overflow-hidden">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/NovayaGazeta.svg/1200px-NovayaGazeta.svg.png" alt="Novaya Gazeta" class="w-full h-32 object-contain p-4">
+                    <div class="p-4 bg-gray-50">
+                        <h3 class="font-semibold">Novaya Gazeta</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-gray-500">Russia</span>
+                            <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Medium Credibility</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cross-Reference Visualization (Initially Hidden) -->
+    <section id="crossReferenceSection" class="py-12 px-4 bg-gray-900 text-white hidden scanning-animation">
+        <div class="container mx-auto max-w-6xl text-center">
+            <div class="flex justify-center mb-8">
+                <div class="bg-blue-600 rounded-full p-4">
+                    <i class="fas fa-globe-americas text-4xl"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold mb-6">Cross-Referencing Across Our Newsstand</h2>
+            <p class="text-xl text-blue-200 mb-8 max-w-3xl mx-auto">
+                Scanning <span class="source-counter">7,000+</span> newspapers and magazines worldwide to verify this claim...
+            </p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <div class="text-blue-400 text-3xl mb-2">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <h3 class="font-semibold mb-1">45 Languages</h3>
+                    <p class="text-gray-400 text-sm">From English to Swahili</p>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <div class="text-blue-400 text-3xl mb-2">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h3 class="font-semibold mb-1">190 Countries</h3>
+                    <p class="text-gray-400 text-sm">Global coverage</p>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <div class="text-blue-400 text-3xl mb-2">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 class="font-semibold mb-1">Archive Depth</h3>
+                    <p class="text-gray-400 text-sm">Up to 20 years of data</p>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <div class="text-blue-400 text-3xl mb-2">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h3 class="font-semibold mb-1">Bias Analysis</h3>
+                    <p class="text-gray-400 text-sm">Multiple perspectives</p>
+                </div>
+            </div>
+            
+            <div class="w-full bg-gray-800 rounded-full h-4 mb-8">
+                <div id="scanProgress" class="bg-blue-600 h-4 rounded-full" style="width: 0%"></div>
+            </div>
+            
+            <p class="text-gray-400 max-w-3xl mx-auto">
+                Our system checks for consistency across political spectrums, geographic regions, and time periods to determine credibility.
+            </p>
+        </div>
+    </section>
+
+    <!-- Results Section (Initially Hidden) -->
+    <section id="resultsSection" class="py-12 px-4 bg-white hidden">
+        <div class="container mx-auto max-w-4xl">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">Credibility Analysis</h2>
+                <button onclick="resetSearch()" class="text-blue-600 hover:text-blue-800 flex items-center">
+                    <i class="fas fa-redo mr-2"></i> New Search
+                </button>
+            </div>
+
+            <div class="fact-check-result p-6 rounded-lg mb-8 border-l-blue-500">
+                <div class="flex items-start">
+                    <div class="mr-4 text-2xl text-blue-500">
+                        <i class="fas fa-quote-left"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2" id="resultClaim">Claim appears here</h3>
+                        <div class="flex items-center mb-4">
+                            <span class="mr-2 font-medium">Credibility:</span>
+                            <div class="credibility-meter w-48">
+                                <div class="h-full rounded" id="credibilityBar"></div>
+                            </div>
+                            <span class="ml-2 font-medium" id="credibilityScore">--%</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                <i class="fas fa-newspaper mr-1"></i> 7,000+ sources checked
+                            </span>
+                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                <i class="fas fa-globe mr-1"></i> 45 languages analyzed
+                            </span>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                <i class="fas fa-clock mr-1"></i> 10-year archive
+                            </span>
+                        </div>
+                        <p class="text-gray-700" id="resultSummary">
+                            Detailed analysis will appear here showing whether multiple credible sources confirm or contradict this claim.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Supporting Evidence</h3>
+                <div class="text-sm text-gray-500">
+                    <span id="evidenceCount">3</span> of <span id="totalSources">7,000+</span> relevant sources shown
+                </div>
+            </div>
+            <div class="space-y-4" id="evidenceContainer">
+                <!-- Evidence items will be added here by JavaScript -->
+            </div>
+            
+            <div class="mt-8 bg-blue-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i> How We Determined This
+                </h4>
+                <p class="text-blue-900 text-sm">
+                    Our credibility score is calculated based on consistency across sources, reputation of publications, 
+                    date of reporting, and geographic diversity. We weighted results from fact-checking organizations 
+                    and peer-reviewed journals more heavily.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="py-16 px-4 bg-gray-50">
+        <div class="container mx-auto max-w-6xl">
+            <h2 class="text-3xl font-bold text-center mb-12">How NewsCred Works</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-blue-500 text-4xl mb-4">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">1. Submit Your Query</h3>
+                    <p class="text-gray-600">
+                        Enter a news headline, claim, or statement you've heard. Our system will analyze it against thousands of global news sources.
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-blue-500 text-4xl mb-4">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">2. Cross-Reference Sources</h3>
+                    <p class="text-gray-600">
+                        We check <strong>7,000+ newspapers and magazines</strong> worldwide to see if they confirm or contradict the information, analyzing across languages, regions, and time periods.
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-blue-500 text-4xl mb-4">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">3. Get Credibility Score</h3>
+                    <p class="text-gray-600">
+                        Receive a detailed report with a credibility score, supporting evidence, and links to original sources from our extensive catalog.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Source Catalog -->
+    <section class="py-16 px-4 bg-white">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Newsstand Catalog</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    With over 7,000 verified sources, we provide the most comprehensive fact-checking available
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 mb-12">
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-blue-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-flag text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">International Coverage</h3>
+                    </div>
+                    <p class="text-gray-600">
+                        We include major publications from every country, plus regional and local newspapers to capture diverse perspectives.
+                    </p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-green-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-star text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Credibility Ratings</h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Each source is rated based on historical accuracy, editorial standards, and independent assessments.
+                    </p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-sync-alt text-purple-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Continuous Updates</h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Our catalog grows weekly as we add new verified sources and update our credibility assessments.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 rounded-xl p-8">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 mb-6 md:mb-0">
+                        <h3 class="text-2xl font-bold text-blue-800 mb-4">Want to Explore Our Full Catalog?</h3>
+                        <p class="text-blue-900 mb-4">
+                            Browse our complete directory of 7,000+ newspapers and magazines with credibility ratings and metadata.
+                        </p>
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition">
+                            View Source Directory <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                    <div class="md:w-1/2">
+                        <div class="bg-white p-6 rounded-lg shadow-inner text-center">
+                            <div class="text-5xl font-bold text-blue-600 mb-2 source-counter">7,000+</div>
+                            <div class="text-gray-600">Verified News Sources</div>
+                            <div class="h-1 bg-blue-200 rounded-full mt-4 overflow-hidden">
+                                <div class="h-full bg-blue-500 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Help Tab -->
+    <div class="floating-tab fixed bottom-8 right-8 bg-blue-600 text-white p-4 rounded-full shadow-xl cursor-pointer hover:bg-blue-700 transition z-50">
+        <i class="fas fa-question text-2xl"></i>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 px-4">
+        <div class="container mx-auto max-w-6xl">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-newspaper mr-2 text-yellow-400"></i> NewsCred
+                    </h3>
+                    <p class="text-gray-400">
+                        Your trusted source for verifying news credibility across 7,000+ global publications.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Home</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Fact Check</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Source Directory</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Methodology</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Resources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Media Literacy Guide</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Spotting Fake News</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">API for Developers</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Research Papers</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Connect</h4>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl"><i class="fab fa-github"></i></a>
+                    </div>
+                    <p class="text-gray-400">
+                        Subscribe to our newsletter for weekly fact-checking reports.
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2023 NewsCred. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sample data for demonstration
+        const sampleEvidence = [
+            {
+                source: "The New York Times",
+                date: "June 15, 2023",
+                summary: "Multiple scientific studies have confirmed that COVID vaccines do not cause autism. The original study making this claim was retracted and its author lost his medical license.",
+                url: "#",
+                credibility: "high",
+                country: "USA",
+                language: "English"
+            },
+            {
+                source: "BBC Health",
+                date: "May 22, 2023",
+                summary: "A comprehensive review of over 20 million vaccination records found no link between COVID vaccines and autism spectrum disorders.",
+                url: "#",
+                credibility: "high",
+                country: "UK",
+                language: "English"
+            },
+            {
+                source: "Le Monde",
+                date: "April 10, 2023",
+                summary: "French health authorities confirm there is no evidence connecting COVID-19 vaccines to autism, aligning with international consensus.",
+                url: "#",
+                credibility: "high",
+                country: "France",
+                language: "French"
+            },
+            {
+                source: "Der Spiegel",
+                date: "March 5, 2023",
+                summary: "German researchers found no correlation between vaccination rates and autism diagnoses in a nationwide study.",
+                url: "#",
+                credibility: "high",
+                country: "Germany",
+                language: "German"
+            },
+            {
+                source: "South China Morning Post",
+                date: "February 18, 2023",
+                summary: "Hong Kong study replicates international findings showing no vaccine-autism link in Asian populations.",
+                url: "#",
+                credibility: "medium",
+                country: "Hong Kong",
+                language: "English"
+            }
+        ];
+
+        function checkCredibility() {
+            const query = document.getElementById('newsQuery').value.trim();
+            if (!query) {
+                alert('Please enter a news claim to check');
+                return;
+            }
+
+            // Show cross-reference section first
+            document.getElementById('crossReferenceSection').classList.remove('hidden');
+            
+            // Scroll to cross-reference section
+            document.getElementById('crossReferenceSection').scrollIntoView({ behavior: 'smooth' });
+
+            // Simulate scanning animation
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 100) progress = 100;
+                document.getElementById('scanProgress').style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    // After scanning completes, show results
+                    setTimeout(showResults, 1000, query);
+                }
+            }, 200);
+        }
+
+        function showResults(query) {
+            // Hide cross-reference section
+            document.getElementById('crossReferenceSection').classList.add('hidden');
+            
+            // Show results section
+            document.getElementById('resultsSection').classList.remove('hidden');
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+
+            // Update claim text
+            document.getElementById('resultClaim').textContent = `"${query}"`;
+
+            // Simulate analysis with random credibility score (in real app this would come from backend)
+            const score = Math.floor(Math.random() * 40) + 60; // Random between 60-100 for demo
+            document.getElementById('credibilityScore').textContent = `${score}%`;
+            
+            // Update credibility bar
+            const bar = document.getElementById('credibilityBar');
+            bar.style.width = `${score}%`;
+            
+            if (score > 80) {
+                bar.classList.add('bg-green-500');
+                document.querySelector('.fact-check-result').classList.add('border-l-green-500');
+                document.getElementById('resultSummary').textContent = 
+                    `Our analysis of 7,000+ sources found this claim to be highly credible. Multiple reputable publications across different regions and languages confirm this information with consistent evidence.`;
+            } else if (score > 60) {
+                bar.classList.add('bg-yellow-500');
+                document.querySelector('.fact-check-result').classList.add('border-l-yellow-500');
+                document.getElementById('resultSummary').textContent = 
+                    `This claim has some supporting evidence in our catalog, but we found conflicting reports or limitations in the available information across our 7,000+ sources.`;
+            } else {
+                bar.classList.add('bg-red-500');
+                document.querySelector('.fact-check-result').classList.add('border-l-red-500');
+                document.getElementById('resultSummary').textContent = 
+                    `Our analysis of publications worldwide suggests this claim is not well-supported by credible evidence. Multiple fact-checking sources across our catalog dispute this information.`;
+            }
+
+            // Add evidence items
+            const container = document.getElementById('evidenceContainer');
+            container.innerHTML = '';
+            
+            // Update total sources count
+            document.getElementById('totalSources').textContent = "7,000+";
+            document.getElementById('evidenceCount').textContent = sampleEvidence.length;
+            
+            sampleEvidence.forEach(item => {
+                const credibilityColor = item.credibility === 'high' ? 'text-green-600' : 'text-yellow-600';
+                const credibilityIcon = item.credibility === 'high' ? 'fa-check-circle' : 'fa-exclamation-circle';
+                
+                const itemHTML = `
+                    <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-medium">${item.source}</h4>
+                            <span class="text-sm text-gray-500">${item.date}</span>
+                        </div>
+                        <p class="text-gray-700 mb-3">${item.summary}</p>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                                <i class="fas fa-map-marker-alt mr-1"></i> ${item.country}
+                            </span>
+                            <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                                <i class="fas fa-language mr-1"></i> ${item.language}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <a href="${item.url}" class="text-blue-600 hover:text-blue-800 text-sm">
+                                <i class="fas fa-external-link-alt mr-1"></i> Read source
+                            </a>
+                            <span class="text-sm ${credibilityColor}">
+                                <i class="fas ${credibilityIcon} mr-1"></i> ${item.credibility} credibility
+                            </span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += itemHTML;
+            });
+        }
+
+        function resetSearch() {
+            document.getElementById('crossReferenceSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('newsQuery').value = '';
+            document.getElementById('newsQuery').focus();
+            
+            // Reset credibility bar
+            const bar = document.getElementById('credibilityBar');
+            bar.style.width = '0%';
+            bar.className = 'h-full rounded'; // Remove color classes
+            
+            // Reset result border
+            const resultBox = document.querySelector('.fact-check-result');
+            resultBox.classList.remove('border-l-green-500', 'border-l-yellow-500', 'border-l-red-500');
+            resultBox.classList.add('border-l-blue-500');
+            
+            // Reset progress bar
+            document.getElementById('scanProgress').style.width = '0%';
+        }
+    </script>
+</body>
+</html>
